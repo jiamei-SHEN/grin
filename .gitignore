@@ -1,1 +1,5 @@
 *.DS_STORE
+/运行记录
+/datasets
+/logs
+/.idea

@@ -1,3 +1,17 @@
+import os
+import sys
+
+# 获取当前脚本所在的目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# 获取项目根目录的路径
+project_dir = os.path.abspath(os.path.join(script_dir, '..'))
+# 将项目根目录添加到 Python 搜索路径
+sys.path.append(project_dir)
+# 确保 lib 目录位于项目根目录下
+lib_dir = os.path.join(project_dir, 'lib')
+# 将 lib 目录添加到 Python 搜索路径
+sys.path.append(lib_dir)
+
 from argparse import ArgumentParser
 
 import numpy as np

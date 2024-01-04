@@ -58,6 +58,8 @@ def geographical_distance(x=None, to_rad=True):
     Compute the as-the-crow-flies distance between every pair of samples in `x`. The first dimension of each point is
     assumed to be the latitude, the second is the longitude. The inputs is assumed to be in degrees. If it is not the
     case, `to_rad` must be set to False. The dimension of the data must be 2.
+    计算 `x` 中每对样本之间的距离。每个点的第一个维度假定为纬度，第二个维度为经度。
+    输入的单位假定为度。如果不是，则必须将 `to_rad` 设置为 False。数据的维度必须是 2。
 
     Parameters
     ----------
@@ -94,13 +96,16 @@ def geographical_distance(x=None, to_rad=True):
 def infer_mask(df, infer_from='next'):
     """Infer evaluation mask from DataFrame. In the evaluation mask a value is 1 if it is present in the DataFrame and
     absent in the `infer_from` month.
+    在评估掩码中，如果某个值在数据框中存在但在infer_from月份（就是上个月或下个月）中不存在，则该值为1
 
     @param pd.DataFrame df: the DataFrame.
     @param str infer_from: denotes from which month the evaluation value must be inferred.
     Can be either `previous` or `next`.
     @return: pd.DataFrame eval_mask: the evaluation mask for the DataFrame
     """
+    # 创建一个与输入数据框 df 具有相同形状的掩码 mask，对应位置为NaN，则掩码值为0，否则为1。
     mask = (~df.isna()).astype('uint8')
+    # 创建一个与输入数据框相同形状的评估掩码 eval_mask，并将所有值初始化为0
     eval_mask = pd.DataFrame(index=mask.index, columns=mask.columns, data=0).astype('uint8')
     if infer_from == 'previous':
         offset = -1
@@ -108,16 +113,35 @@ def infer_mask(df, infer_from='next'):
         offset = 1
     else:
         raise ValueError('infer_from can only be one of %s' % ['previous', 'next'])
+    # 提取数据框中存在的不同年份和月份的组合，并对它们进行排序
     months = sorted(set(zip(mask.index.year, mask.index.month)))
+    '''months = [(2014, 5),
+                 (2014, 6),
+                 (2014, 7),
+                 (2014, 8),
+                 (2014, 9),
+                 (2014, 10),
+                 (2014, 11),
+                 (2014, 12),
+                 (2015, 1),
+                 (2015, 2),
+                 (2015, 3),
+                 (2015, 4)]'''
     length = len(months)
     for i in range(length):
-        j = (i + offset) % length
-        year_i, month_i = months[i]
+        j = (i + offset) % length  # 选择相邻月份
+        year_i, month_i = months[i]  # 获取当前月份（i）和相邻月份（j）的年份和月份
         year_j, month_j = months[j]
+        # 从数据框 mask 中提取相邻月份（j）的掩码数据
         mask_j = mask[(mask.index.year == year_j) & (mask.index.month == month_j)]
+        # mask_j 的1,0值不变，把第一列时间换成 mask_i 对应的时间作为 mask_i 的值
         mask_i = mask_j.shift(1, pd.DateOffset(months=12 * (year_i - year_j) + (month_i - month_j)))
+        # 移除 mask_i 中重复的索引行，并保留第一个出现的行
         mask_i = mask_i[~mask_i.index.duplicated(keep='first')]
+        # 保留 mask_i 中也存在于 mask 中的时间戳行
         mask_i = mask_i[np.in1d(mask_i.index, mask.index)]
+        # 根据 mask_i 数据框的有效性信息来更新 eval_mask 数据框中相应时间戳的值
+        # 在数据框中存在但在infer_from月份中不存在，则该值为1
         eval_mask.loc[mask_i.index] = ~mask_i.loc[mask_i.index] & mask.loc[mask_i.index]
     return eval_mask
 
@@ -203,10 +227,11 @@ def disjoint_months(dataset, months=None, synch_mode='window'):
 
 
 def thresholded_gaussian_kernel(x, theta=None, threshold=None, threshold_on_input=False):
+    # 这里 theta 的平方对应论文中的 gama
     if theta is None:
         theta = np.std(x)
     weights = np.exp(-np.square(x / theta))
     if threshold is not None:
         mask = x > threshold if threshold_on_input else weights < threshold
-        weights[mask] = 0.
+        weights[mask] = 0.  # mask中对应 True 的为 0.
     return weights

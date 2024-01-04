@@ -1,3 +1,17 @@
+import os
+import sys
+
+# 获取当前脚本所在的目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# 获取项目根目录的路径
+project_dir = os.path.abspath(os.path.join(script_dir, '..'))
+# 将项目根目录添加到 Python 搜索路径
+sys.path.append(project_dir)
+# 确保 lib 目录位于项目根目录下
+lib_dir = os.path.join(project_dir, 'lib')
+# 将 lib 目录添加到 Python 搜索路径
+sys.path.append(lib_dir)
+
 import copy
 import datetime
 import os
@@ -40,7 +54,7 @@ def parse_args():
     # Argument parser
     parser = ArgumentParser()
     parser.add_argument('--seed', type=int, default=-1)
-    parser.add_argument("--model-name", type=str, default='bigrill')
+    parser.add_argument("--model-name", type=str, default='grin')
     parser.add_argument("--config", type=str, default=None)
     # Dataset params
     parser.add_argument('--static-adj', type=str_to_bool, nargs='?', const=True, default=False)
