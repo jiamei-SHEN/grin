@@ -47,7 +47,7 @@ def parse_args():
     args = parser.parse_args()
     # parse dataset
     if args.datasets[0] == 'all':
-        args.datasets = ['air36', 'air', 'bay', 'irish', 'la', 'bay_noise', 'irish_noise', 'la_noise']
+        args.datasets = ['air36', 'air', 'bay', 'irish', 'la', 'cere', 'bay_noise', 'irish_noise', 'la_noise', 'cere_noise']
     # parse imputers
     if args.imputers[0] == 'all':
         args.imputers = ['mean', 'knn', 'mf', 'mice']
@@ -155,10 +155,14 @@ def get_dataset(dataset_name):
         dataset = datasets.MissingValuesPemsBay()
     elif dataset_name == 'la':
         dataset = datasets.MissingValuesMetrLA()
+    elif dataset_name == 'cere':
+        dataset = datasets.MissingValuesCERE()
     elif dataset_name == 'la_noise':
         dataset = datasets.MissingValuesMetrLA(p_fault=0., p_noise=0.25)
     elif dataset_name == 'bay_noise':
         dataset = datasets.MissingValuesPemsBay(p_fault=0., p_noise=0.25)
+    elif dataset_name == 'cere_noise':
+        dataset = datasets.MissingValuesCERE(p_fault=0., p_noise=0.25)
     else:
         raise ValueError(f"Dataset {dataset_name} not available in this setting.")
 
