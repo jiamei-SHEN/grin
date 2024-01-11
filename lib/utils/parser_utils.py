@@ -76,11 +76,12 @@ def filter_args(args: Union[Namespace, dict], target_cls, return_dict=False):
     return Namespace(**filtered_args)
 
 
+# 根据函数的参数列表，从给定的参数字典中筛选出与函数参数匹配的参数，并返回一个包含这些参数的命名空间（Namespace）或字典
 def filter_function_args(args: Union[Namespace, dict], function, return_dict=False):
-    argspec = inspect.getfullargspec(function)
+    argspec = inspect.getfullargspec(function)  # 获取函数 function 的参数列表
     target_args = argspec.args
     if isinstance(args, Namespace):
-        args = vars(args)
+        args = vars(args)  # 将其转换为字典
     filtered_args = {k: args[k] for k in target_args if k in args}
     if return_dict:
         return filtered_args

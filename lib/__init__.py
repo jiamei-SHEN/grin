@@ -9,7 +9,8 @@ datasets_path = {
     'air': 'datasets/air_quality',
     'la': 'datasets/metr_la',
     'bay': 'datasets/pems_bay',
-    'synthetic': 'datasets/synthetic'
+    'synthetic': 'datasets/synthetic',
+    'cere': 'datasets/irish_cere'
 }
 epsilon = 1e-8
 

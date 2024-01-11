@@ -99,10 +99,11 @@ class SpatioTemporalDataModule(pl.LightningDataModule):
             return NotImplementedError
 
     def setup(self, stage=None):
-
-        if self.scale:
+        # 进行数据缩放的准备工作。它会训练一个或多个缩放器，用于对训练数据和外生变量进行缩放操作，并将缩放器对象存储在数据集中以供后续使用。
+        # 数据预处理的一部分，以确保数据在输入模型之前被适当地缩放
+        if self.scale:  # 是否需要对数据进行缩放
             scaling_axis = self.get_scaling_axes(self.scaling_axis)
-            train = self.torch_dataset.data.numpy()[self.train_slice]
+            train = self.torch_dataset.data.numpy()[self.train_slice]  # 这些数据将用于训练缩放器
             train_mask = self.torch_dataset.mask.numpy()[self.train_slice] if 'mask' in self.torch_dataset else None
             scaler = self.get_scaler()(scaling_axis).fit(train, mask=train_mask, keepdims=True).to_torch()
             self.torch_dataset.scaler = scaler

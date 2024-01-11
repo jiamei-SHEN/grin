@@ -235,3 +235,52 @@ def thresholded_gaussian_kernel(x, theta=None, threshold=None, threshold_on_inpu
         mask = x > threshold if threshold_on_input else weights < threshold
         weights[mask] = 0.  # mask中对应 True 的为 0.
     return weights
+
+
+def correntropy(x, y, sigma):
+    """
+    计算两个时间序列x和y之间的correntropy。
+
+    Parameters
+    ----------
+    x : np.ndarray
+        第一个时间序列.
+    y : np.ndarray
+        第二个时间序列.
+    sigma : float
+        核函数的宽度参数.
+
+    Returns
+    -------
+    float
+        两个时间序列之间的correntropy值.
+    """
+    return np.mean(np.exp(-np.linalg.norm(x - y) ** 2 / (2 * sigma ** 2)))
+
+
+def extract_weighted_k_nearest_neighbors(similarity_matrix, k=10):
+    num_meters = similarity_matrix.shape[0]
+    adj = np.zeros((num_meters, num_meters), dtype=float)
+
+    # 遍历每个meter
+    for i in range(num_meters):
+        # 对相似度进行排序并获取索引
+        sorted_indices = np.argsort(similarity_matrix[i])
+        # 选择前k个最近邻传感器的索引（不包括自身）
+        k_nearest_indices = sorted_indices[1:k + 1]  # 跳过自身，选择前k个
+
+        # 将邻接矩阵中对应位置设为相似度值，表示连接权重
+        # adjacency_matrix[i, k_nearest_indices] = similarity_matrix[i, k_nearest_indices]
+        # adjacency_matrix[i, k_nearest_indices] = 1
+
+        # 计算最大和最小相似度值
+        max_similarity = np.max(similarity_matrix[i, k_nearest_indices])
+        min_similarity = np.min(similarity_matrix[i, k_nearest_indices])
+        if max_similarity == min_similarity:
+            adj[i, k_nearest_indices] = 0.5
+        else:
+            # 将邻接矩阵中对应位置设为相似度值的线性归一化
+            adj[i, k_nearest_indices] = (similarity_matrix[i, k_nearest_indices] - min_similarity) / (
+                        max_similarity - min_similarity)
+
+    return adj

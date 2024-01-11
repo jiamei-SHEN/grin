@@ -70,12 +70,14 @@ def get_dataset(dataset_name):
         dataset = datasets.MissingValuesPemsBay()
     elif dataset_name == 'la_block':
         dataset = datasets.MissingValuesMetrLA()
+    elif dataset_name == 'irish_block':
+        dataset = datasets.MissingValuesCERE()
     elif dataset_name == 'la_point':
         dataset = datasets.MissingValuesMetrLA(p_fault=0., p_noise=0.25)
     elif dataset_name == 'bay_point':
         dataset = datasets.MissingValuesPemsBay(p_fault=0., p_noise=0.25)
-    #elif dataset_name == 'irish_block':
-    #    dataset = datasets.
+    elif dataset_name == 'irish_point':
+        dataset = datasets.MissingValuesCERE(p_fault=0., p_noise=0.25)
     else:
         raise ValueError(f"Dataset {dataset_name} not available in this setting.")
     return dataset
@@ -232,9 +234,14 @@ def run_experiment(args):
     ########################################
 
     # callbacks
+    # 监视验证集上的 MAE 指标 ('val_mae')。如果在连续 args.patience 个验证周期内该指标没有改善（即没有减小），则训练将提前停止。
+    # mode='min' 表示我们希望在最小化 MAE 时触发早停。
     early_stop_callback = EarlyStopping(monitor='val_mae', patience=args.patience, mode='min')
+    # 在每个验证周期结束时保存模型的权重。它将模型的检查点保存在 logdir 目录下，save_top_k=1 表示只保存验证集上 MAE 最小的那个模型检查点。
+    # 同样，它也监视验证集上的 MAE 指标，并在每个验证周期结束时检查是否要保存检查点。
     checkpoint_callback = ModelCheckpoint(dirpath=logdir, save_top_k=1, monitor='val_mae', mode='min')
 
+    # TensorBoard 日志记录器，用于将训练过程中的指标和可视化信息记录到 TensorBoard 日志文件中。
     logger = TensorBoardLogger(logdir, name="model")
 
     trainer = pl.Trainer(max_epochs=args.epochs,
@@ -251,10 +258,11 @@ def run_experiment(args):
     # testing                              #
     ########################################
 
+    # 加载了在验证集上性能最佳的模型权重
     filler.load_state_dict(torch.load(checkpoint_callback.best_model_path,
                                       lambda storage, loc: storage)['state_dict'])
-    filler.freeze()
-    trainer.test()
+    filler.freeze()  # 将模型的参数设置为不可训练（冻结），接下来的操作中模型的参数将保持不变，不会被更新。
+    trainer.test()  # 测试集评估，计算测试集上的各种评估指标（如 MAE、MAPE、MSE 等）
     filler.eval()
 
     if torch.cuda.is_available():

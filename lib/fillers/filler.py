@@ -97,6 +97,7 @@ class Filler(pl.LightningModule):
     def _preprocess(self, data, batch_preprocessing):
         """
         Perform preprocessing of a given input.
+        这个方法的目的是通过减去趋势、偏差和缩放，将输入数据归一化或标准化，以便在模型中进行处理。
 
         :param data: pytorch tensor of shape [batch, steps, nodes, features] to preprocess
         :param batch_preprocessing: dictionary containing preprocessing data
@@ -157,11 +158,13 @@ class Filler(pl.LightningModule):
     def predict_loader(self, loader, preprocess=False, postprocess=True, return_mask=True):
         """
         Makes predictions for an input dataloader. Returns both the predictions and the predictions targets.
+        循环遍历数据加载器中的批次，对每个批次进行预测，然后将预测结果、真实目标和有效掩码（如果存在）
+        分别存储在 imputations、targets和 masks 列表中。最后，通过 torch.cat 函数将这些结果合并为张量，并返回。
 
         :param loader: torch dataloader
-        :param preprocess: whether to preprocess the data
-        :param postprocess: whether to postprocess the data
-        :param return_mask: whether to return the valid mask (if it exists)
+        :param preprocess: whether to preprocess the data 是否进行预处理
+        :param postprocess: whether to postprocess the data 是否进行后处理
+        :param return_mask: whether to return the valid mask (if it exists) 是否返回有效掩码（如果存在）
         :return: y_true, y_hat
         """
         targets, imputations, masks = [], [], []
