@@ -66,6 +66,6 @@ def reverse_tensor(tensor=None, axis=-1):
         return None
     if tensor.dim() <= 1:
         return tensor
-    indices = range(tensor.size()[axis])[::-1]
+    indices = range(tensor.size()[axis])[::-1]  # 创建一个索引列表，用于表示在指定维度 axis 上翻转张量的顺序
     indices = Variable(torch.LongTensor(indices), requires_grad=False).to(tensor.device)
     return tensor.index_select(axis, indices)

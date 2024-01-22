@@ -36,7 +36,7 @@ class GraphFiller(Filler):
         elif model_class in [GRINet, BiMPGRUNet]:
             self.trimming = (warm_up, warm_up)
 
-    def trim_seq(self, *seq):
+    def trim_seq(self, *seq):  # 截取输入序列的一部分数据
         seq = [s[:, self.trimming[0]:s.size(1) - self.trimming[1]] for s in seq]
         if len(seq) == 1:
             return seq[0]
@@ -48,9 +48,15 @@ class GraphFiller(Filler):
 
         # Compute masks
         mask = batch_data['mask'].clone().detach()
+        # mask上为1的值将以self.keep_prob（也就是0.95）的概率保持是1，0.05的概率变成0
+        # 为什么这么做？应该是为了增加数据随机性
         batch_data['mask'] = torch.bernoulli(mask.clone().detach().float() * self.keep_prob).byte()
         eval_mask = batch_data.pop('eval_mask', None)
         eval_mask = (mask | eval_mask) - batch_data['mask']  # all unseen data
+
+        # 现在，mask：原始数据中不为nan & 引入bernoulli那一步操作前没有被挖掉
+        # eval_mask：被挖掉用于预测的值，能保证是原始数据中不为nan的，并带入了一些随机性
+        # 此时mask和eval_mask是交集不为空，交集就是因为bernoulli这一步从1变成0的那些点
 
         y = batch_data.pop('y')
 
@@ -70,6 +76,7 @@ class GraphFiller(Filler):
             for i, _ in enumerate(predictions):
                 predictions[i] = self._postprocess(predictions[i], batch_preprocessing)
 
+        # 计算loss的时候使用mask，也就是把所有为1的值算loss
         loss = self.loss_fn(imputation, target, mask)
         for pred in predictions:
             loss += self.tradeoff * self.loss_fn(pred, target, mask)

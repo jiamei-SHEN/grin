@@ -162,8 +162,8 @@ def run_experiment(args):
     # instantiate dataset
     dataset_cls = GraphImputationDataset if has_graph_support(model_cls) else ImputationDataset
     torch_dataset = dataset_cls(*dataset.numpy(return_idx=True),
-                                mask=dataset.training_mask,
-                                eval_mask=dataset.eval_mask,
+                                mask=dataset.training_mask,  # 原始数据中可用且没有被挖掉
+                                eval_mask=dataset.eval_mask,  # 原始数据中可用且被挖掉
                                 window=args.window,
                                 stride=args.stride)
 

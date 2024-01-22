@@ -111,7 +111,7 @@ class GRIL(nn.Module):
             h0.append(nn.Parameter(vals))
         return nn.ParameterList(h0)
 
-    def get_h0(self, x):
+    def get_h0(self, x):  # 获取模型的初始隐藏状态 h0
         if self.h0 is not None:
             return [h.expand(x.shape[0], -1, -1) for h in self.h0]
         return [torch.zeros(size=(x.shape[0], self.hidden_size, x.shape[2])).to(x.device)] * self.n_layers
@@ -142,7 +142,7 @@ class GRIL(nn.Module):
         predictions, imputations, states = [], [], []
         representations = []
         for step in range(steps):
-            x_s = x[..., step]
+            x_s = x[..., step]  # 三维张量。选择了所有批次 (batch)、所有特征 (features)、所有节点 (nodes) 在给定的时间步 step 上的数据。
             m_s = mask[..., step]
             h_s = h[-1]
             u_s = u[..., step] if u is not None else None
@@ -266,7 +266,10 @@ class BiGRIL(nn.Module):
         else:
             imputation = torch.stack([fwd_out, bwd_out], dim=1)
             imputation = self.out(imputation, dim=1)
+        # 这里对于imputation的理解，我认为是生成的完整数据（还没有做结合原数据和掩码的补全的时候）
+        # _impute_from_states说明从状态（即repr）中操作，else的情况就是从生成的完整数据操作
 
         predictions = torch.stack([fwd_out, bwd_out, fwd_pred, bwd_pred], dim=0)
-
+        # fwd_pred, bwd_pred可以理解成表示了h，他们由h经过1d Conv生成
+        # fwd_out, bwd_out就是第二阶段生成的完整数据（还没有做结合原数据和掩码的补全的时候）
         return imputation, predictions

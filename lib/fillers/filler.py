@@ -70,8 +70,9 @@ class Filler(pl.LightningModule):
     def reset_model(self):
         self.model = self.model_cls(**self.model_kwargs)
 
-    @property
+    @property  # 被定义为一个属性
     def trainable_parameters(self):
+        # 返回模型的可训练参数的总数量
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
 
     @auto_move_data
@@ -80,6 +81,7 @@ class Filler(pl.LightningModule):
 
     @staticmethod
     def _check_metric(metric, on_step=False):
+        # 确保提供的度量是一个 MaskedMetric 类的实例。如果不是，它会将传入的度量函数转换为 MaskedMetric 类的实例。
         if not isinstance(metric, MaskedMetric):
             if 'reduction' in inspect.getfullargspec(metric).args:
                 metric_kwargs = {'reduction': 'none'}

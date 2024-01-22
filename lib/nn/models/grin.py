@@ -56,6 +56,7 @@ class GRINet(nn.Module):
         # imputation: [batches, channels, nodes, steps] prediction: [4, batches, channels, nodes, steps]
         imputation, prediction = self.bigrill(x, self.adj, mask=mask, u=u, cached_support=self.training)
         # In evaluation stage impute only missing values
+        # 目的是在评估阶段，仅在缺失值的位置使用模型生成的填充值，而在其他位置保持原始输入的值
         if self.impute_only_holes and not self.training:
             imputation = torch.where(mask, x, imputation)
         # out: [batches, channels, nodes, steps] -> [batches, steps, nodes, channels]

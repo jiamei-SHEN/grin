@@ -7,8 +7,8 @@ from torchmetrics.utilities.checks import _check_same_shape
 
 class MaskedMetric(Metric):
     def __init__(self,
-                 metric_fn,
-                 mask_nans=False,
+                 metric_fn,  # 计算指标的函数
+                 mask_nans=False,  # 控制是否在计算指标时忽略 NaN 和 Inf
                  mask_inf=False,
                  compute_on_step=True,
                  dist_sync_on_step=False,
@@ -23,6 +23,7 @@ class MaskedMetric(Metric):
 
         if metric_kwargs is None:
             metric_kwargs = dict()
+        # 如果提供了 metric_fn 的额外参数（metric_kwargs），使用 partial 将这些参数绑定到 metric_fn
         self.metric_fn = partial(metric_fn, **metric_kwargs)
         self.mask_nans = mask_nans
         self.mask_inf = mask_inf
@@ -49,6 +50,7 @@ class MaskedMetric(Metric):
         val = self.metric_fn(y_hat, y)
         mask = self._check_mask(mask, val)
         val = torch.where(mask, val, torch.tensor(0., device=val.device).float())
+        # 只计算 mask=1 的部分
         return val.sum(), mask.sum()
 
     def _compute_std(self, y_hat, y):

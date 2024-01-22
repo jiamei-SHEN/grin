@@ -22,8 +22,8 @@ class SpatialConvOrderK(nn.Module):
     def compute_support(adj, device=None):
         if device is not None:
             adj = adj.to(device)
-        adj_bwd = adj.T
-        adj_fwd = adj / (adj.sum(1, keepdims=True) + epsilon)
+        adj_bwd = adj.T  # 转置
+        adj_fwd = adj / (adj.sum(1, keepdims=True) + epsilon)  # 对邻接矩阵 adj 沿着每行的方向进行归一化，使得每行的和为1
         adj_bwd = adj_bwd / (adj_bwd.sum(1, keepdims=True) + epsilon)
         support = [adj_fwd, adj_bwd]
         return support
@@ -38,7 +38,7 @@ class SpatialConvOrderK(nn.Module):
         for a in support:
             ak = a
             for i in range(k - 1):
-                ak = torch.matmul(ak, a.T)
+                ak = torch.matmul(ak, a.T)  # 高阶支持矩阵通过多次与原始支持矩阵的乘法来建模节点之间的更长距离的依赖关系
                 if not include_self:
                     ak.fill_diagonal_(0.)
                 supp_k.append(ak)
@@ -54,6 +54,10 @@ class SpatialConvOrderK(nn.Module):
         out = [x] if self.include_self else []
         if (type(support) is not list):
             support = [support]
+        '''空间卷积操作：
+            对于 support 中的每个邻接矩阵 a，执行空间卷积操作。
+            使用 torch.einsum 计算 x 和 a 的矩阵乘法，这个操作基于邻接矩阵将节点特征在图中传播。
+            进一步，根据 self.order 指定的卷积阶数，重复进行空间卷积操作，每一步都将结果添加到输出列表 out 中。'''
         for a in support:
             x1 = torch.einsum('ncvl,wv->ncwl', (x, a)).contiguous()
             out.append(x1)

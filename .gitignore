@@ -4,3 +4,4 @@
 /logs
 /.idea
 *.ipynb_checkpoints
+config.yaml

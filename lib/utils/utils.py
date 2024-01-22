@@ -20,11 +20,11 @@ def sample_mask(shape, p=0.002, p_noise=0., max_seq=1, min_seq=1, rng=None):
         if max_seq > min_seq:
             fault_len = fault_len + int(randint(max_seq - min_seq))
         idxs_ext = np.concatenate([np.arange(i, i + fault_len) for i in idxs])
-        idxs = np.unique(idxs_ext)
-        idxs = np.clip(idxs, 0, shape[0] - 1)
+        idxs = np.unique(idxs_ext)  # 去重
+        idxs = np.clip(idxs, 0, shape[0] - 1)  # 防止索引越界
         mask[idxs, col] = True
     mask = mask | (rand(mask.shape) < p_noise)
-    return mask.astype('uint8')
+    return mask.astype('uint8')  # 挖空的地方是1
 
 
 def compute_mean(x, index=None):

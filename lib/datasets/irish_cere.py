@@ -45,7 +45,7 @@ class IrishCERE(PandasDataset):
                 similarity_matrix[j, i] = similarity  # 填充相似度矩阵的对称部分
 
         # 提取k-nearest neighbor图，构建邻接矩阵
-        adj = extract_weighted_k_nearest_neighbors(similarity_matrix, 10)
+        adj = extract_weighted_k_nearest_neighbors(similarity_matrix, k)
         return adj
 
 
@@ -57,16 +57,18 @@ class MissingValuesCERE(IrishCERE):
         self.rng = np.random.default_rng(self.SEED)
         self.p_fault = p_fault
         self.p_noise = p_noise
+        # 根据p和p_noise先挖一些空，挖空的地方是1
         eval_mask = sample_mask(self.numpy().shape,
                                 p=p_fault,
                                 p_noise=p_noise,
                                 min_seq=4,  # 2 h
                                 max_seq=2 * 24 * 2,  # 2 days
                                 rng=self.rng)
+        # 挖空 & 原来 df 有值 是1，作为评估真正挖空的为1
         self.eval_mask = (eval_mask & self.mask).astype('uint8')
 
     @property
-    def training_mask(self):
+    def training_mask(self):  # 1: 最原始的数据中可用 & 没有被挖掉
         return self.mask if self.eval_mask is None else (self.mask & (1 - self.eval_mask))
 
     def splitter(self, dataset, val_len=0, test_len=0, window=0):
