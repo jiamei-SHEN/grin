@@ -72,12 +72,16 @@ def get_dataset(dataset_name):
         dataset = datasets.MissingValuesMetrLA()
     elif dataset_name == 'irish_block':
         dataset = datasets.MissingValuesCERE()
+    elif dataset_name == 'lowa_block':
+        dataset = datasets.MissingValuesLowa()
     elif dataset_name == 'la_point':
         dataset = datasets.MissingValuesMetrLA(p_fault=0., p_noise=0.25)
     elif dataset_name == 'bay_point':
         dataset = datasets.MissingValuesPemsBay(p_fault=0., p_noise=0.25)
     elif dataset_name == 'irish_point':
         dataset = datasets.MissingValuesCERE(p_fault=0., p_noise=0.25)
+    elif dataset_name == 'lowa_point':
+        dataset = datasets.MissingValuesLowa(p_fault=0., p_noise=0.25)
     else:
         raise ValueError(f"Dataset {dataset_name} not available in this setting.")
     return dataset
@@ -142,7 +146,7 @@ def run_experiment(args):
     pl.seed_everything(args.seed)
 
     model_cls, filler_cls = get_model_classes(args.model_name)
-    dataset = get_dataset(args.dataset_name)
+    dataset = get_dataset(args.dataset_name)  # 一个基于pandas dataframe 的数据集
 
     ########################################
     # create logdir and save configuration #
@@ -161,6 +165,8 @@ def run_experiment(args):
 
     # instantiate dataset
     dataset_cls = GraphImputationDataset if has_graph_support(model_cls) else ImputationDataset
+    # 最终父类是torch里的Dataset
+    # *dataset.numpy(return_idx=True) return self.df.values, self.df.index
     torch_dataset = dataset_cls(*dataset.numpy(return_idx=True),
                                 mask=dataset.training_mask,  # 原始数据中可用且没有被挖掉
                                 eval_mask=dataset.eval_mask,  # 原始数据中可用且被挖掉

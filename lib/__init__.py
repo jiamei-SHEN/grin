@@ -10,7 +10,8 @@ datasets_path = {
     'la': 'datasets/metr_la',
     'bay': 'datasets/pems_bay',
     'synthetic': 'datasets/synthetic',
-    'cere': 'datasets/irish_cere'
+    'cere': 'datasets/irish_cere',
+    'lowa': 'datasets/lowa'
 }
 epsilon = 1e-8
 
