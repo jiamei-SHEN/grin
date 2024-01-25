@@ -89,6 +89,7 @@ class MaskedMRE(MaskedMetric):
         _check_same_shape(y_hat, y)
         val = self.metric_fn(y_hat, y)
         mask = self._check_mask(mask, val)
+        mask = mask * (val != 0)  # mask 0 值
         val = torch.where(mask, val, torch.tensor(0., device=y.device, dtype=torch.float))
         y_masked = torch.where(mask, y, torch.tensor(0., device=y.device, dtype=torch.float))
         return val.sum(), mask.sum(), y_masked.sum()

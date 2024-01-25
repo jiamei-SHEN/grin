@@ -47,7 +47,7 @@ def parse_args():
     args = parser.parse_args()
     # parse dataset
     if args.datasets[0] == 'all':
-        args.datasets = ['air36', 'air', 'bay', 'irish', 'la', 'cere', 'bay_noise', 'irish_noise', 'la_noise', 'cere_noise']
+        args.datasets = ['air36', 'air', 'bay', 'irish', 'la', 'lowa', 'bay_noise', 'irish_noise', 'la_noise', 'lowa_noise']
     # parse imputers
     if args.imputers[0] == 'all':
         args.imputers = ['mean', 'knn', 'mf', 'mice']
@@ -114,11 +114,17 @@ class MeanImputer(Imputer):
 
     def fit(self, x, mask):
         d = np.where(mask, x, np.nan)
+        # 检查 mask 中全为 0 的列，并设置这些列在 d 中的值为 0
+        all_zero_columns = np.all(mask == 0, axis=0)
+        d[:, all_zero_columns] = 0
         self.means = np.nanmean(d, axis=0, keepdims=True)
 
     def predict(self, x, mask):
         if self.in_sample:
             d = np.where(mask, x, np.nan)
+            # 检查 mask 中全为 0 的列，并设置这些列在 d 中的值为 0
+            all_zero_columns = np.all(mask == 0, axis=0)
+            d[:, all_zero_columns] = 0
             means = np.nanmean(d, axis=0, keepdims=True)
         else:
             means = self.means
@@ -155,14 +161,18 @@ def get_dataset(dataset_name):
         dataset = datasets.MissingValuesPemsBay()
     elif dataset_name == 'la':
         dataset = datasets.MissingValuesMetrLA()
-    elif dataset_name == 'cere':
+    elif dataset_name == 'irish':
         dataset = datasets.MissingValuesCERE()
+    elif dataset_name == 'lowa':
+        dataset = datasets.MissingValuesLowa()
     elif dataset_name == 'la_noise':
         dataset = datasets.MissingValuesMetrLA(p_fault=0., p_noise=0.25)
     elif dataset_name == 'bay_noise':
         dataset = datasets.MissingValuesPemsBay(p_fault=0., p_noise=0.25)
-    elif dataset_name == 'cere_noise':
+    elif dataset_name == 'irish_noise':
         dataset = datasets.MissingValuesCERE(p_fault=0., p_noise=0.25)
+    elif dataset_name == 'lowa_noise':
+        dataset = datasets.MissingValuesLowa(p_fault=0., p_noise=0.25)
     else:
         raise ValueError(f"Dataset {dataset_name} not available in this setting.")
 

@@ -49,6 +49,7 @@ class MaskedMetric(Metric):
         _check_same_shape(y_hat, y)
         val = self.metric_fn(y_hat, y)
         mask = self._check_mask(mask, val)
+        mask = mask * (val != 0)  # mask 0 值
         val = torch.where(mask, val, torch.tensor(0., device=val.device).float())
         # 只计算 mask=1 的部分
         return val.sum(), mask.sum()
