@@ -13,6 +13,7 @@ datasets_path = {
     'cere': 'datasets/irish_cere',
     'lowa': 'datasets/lowa'
 }
+pic_path = 'picture/'
 epsilon = 1e-8
 
 for k, v in config.items():

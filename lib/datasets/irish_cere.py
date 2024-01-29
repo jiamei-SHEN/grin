@@ -28,7 +28,7 @@ class IrishCERE(PandasDataset):
             df = df.fillna(compute_mean(df))
         return df, mask
 
-    def get_similarity(self, k=10, force_symmetric=False, sparse=False, **kwargs):
+    def get_similarity(self, thr=0.1):
         # 以周为单位的重采样
         df_weekly = self.df.resample('W').sum()
         # 计算时间序列之间的相似性
@@ -45,7 +45,9 @@ class IrishCERE(PandasDataset):
                 similarity_matrix[j, i] = similarity  # 填充相似度矩阵的对称部分
 
         # 提取k-nearest neighbor图，构建邻接矩阵
+        k = 10
         adj = extract_weighted_k_nearest_neighbors(similarity_matrix, k)
+        adj[adj < thr] = 0.
         return adj
 
 

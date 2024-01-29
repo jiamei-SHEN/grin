@@ -35,6 +35,8 @@ from lib.nn.utils.metric_base import MaskedMetric
 from lib.nn.utils.metrics import MaskedMAE, MaskedMAPE, MaskedMSE, MaskedMRE
 from lib.utils import parser_utils, numpy_metrics, ensure_list, prediction_dataframe
 from lib.utils.parser_utils import str_to_bool
+from lib.utils.draw_utils import save_adj
+from lib import pic_path
 
 
 def has_graph_support(model_cls):
@@ -189,6 +191,9 @@ def run_experiment(args):
 
     # get adjacency matrix
     adj = dataset.get_similarity(thr=args.adj_threshold)
+    save_adj(adj=adj, path=pic_path, name=f'{args.dataset_name}_{args.adj_threshold}_{args.seed}',
+             title=f'adj_{args.dataset_name}')
+
     # force adj with no self loop
     np.fill_diagonal(adj, 0.)
 

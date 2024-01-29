@@ -237,7 +237,7 @@ def thresholded_gaussian_kernel(x, theta=None, threshold=None, threshold_on_inpu
     return weights
 
 
-def correntropy(x, y, sigma):
+'''def correntropy(x, y, sigma):
     """
     计算两个时间序列x和y之间的correntropy。
 
@@ -255,7 +255,40 @@ def correntropy(x, y, sigma):
     float
         两个时间序列之间的correntropy值.
     """
-    return np.mean(np.exp(-np.linalg.norm(x - y) ** 2 / (2 * sigma ** 2)))
+    return np.mean(np.exp(-np.linalg.norm(x - y) ** 2 / (2 * sigma ** 2)))'''
+
+
+def correntropy(x, y, sigma):
+    """
+    Compute the correntropy between two time series x and y.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        The first time series.
+    y : np.ndarray
+        The second time series.
+    sigma : float
+        The bandwidth parameter of the kernel function.
+
+    Returns
+    -------
+    float
+        The estimated correntropy between x and y.
+    """
+    if x.shape != y.shape:
+        raise ValueError("The time series x and y must have the same shape.")
+
+    # Calculate the squared differences
+    diff_squared = np.square(x - y)
+
+    # Compute the Gaussian kernel
+    gaussian_kernel = np.exp(-diff_squared / (2 * sigma ** 2))
+
+    # Estimate the correntropy
+    estimated_correntropy = np.mean(gaussian_kernel)
+
+    return estimated_correntropy
 
 
 def extract_weighted_k_nearest_neighbors(similarity_matrix, k=10):
@@ -281,6 +314,6 @@ def extract_weighted_k_nearest_neighbors(similarity_matrix, k=10):
         else:
             # 将邻接矩阵中对应位置设为相似度值的线性归一化
             adj[i, k_nearest_indices] = (similarity_matrix[i, k_nearest_indices] - min_similarity) / (
-                        max_similarity - min_similarity)
+                    max_similarity - min_similarity)
 
     return adj
